@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nginx Routing Whiteboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Mock reverse proxy lab</p>
+          <h1>Nginx Routing Whiteboard</h1>
+        </div>
+        <div class="status-strip" aria-live="polite">
+          <span id="domainCount">0 domains</span>
+          <span id="enabledCount">0 enabled</span>
+          <span id="sslCount">0 SSL</span>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="control-rail" aria-label="Nginx manager controls">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Domain</h2>
+              <span class="step-badge">01</span>
+            </div>
+            <form id="domainForm" class="form-stack">
+              <label>
+                Domain
+                <input id="domainInput" name="domain" value="demo.local" autocomplete="off" />
+              </label>
+              <button class="primary-action" type="submit">
+                <span class="button-icon" aria-hidden="true">+</span>
+                Create domain
+              </button>
+              <button id="deleteDomainButton" class="danger-action" type="button">Delete selected domain</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>SSL</h2>
+              <span class="step-badge">02</span>
+            </div>
+            <div class="form-stack">
+              <label>
+                Domain
+                <select id="sslDomainSelect"></select>
+              </label>
+              <button id="issueSslButton" class="secondary-action" type="button">
+                <span class="button-icon" aria-hidden="true">#</span>
+                Issue mock cert
+              </button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Config</h2>
+              <span class="step-badge">03</span>
+            </div>
+            <form id="configForm" class="form-stack">
+              <label>
+                Domain
+                <select id="configDomainSelect"></select>
+              </label>
+              <label>
+                Root upstream
+                <input id="rootUpstreamInput" value="http://127.0.0.1:3000" autocomplete="off" />
+              </label>
+              <label>
+                Listen port
+                <input id="listenPortInput" type="number" min="1" max="65535" value="80" />
+              </label>
+              <div class="split-actions">
+                <button class="primary-action" type="submit">
+                  <span class="button-icon" aria-hidden="true">+</span>
+                  Generate config
+                </button>
+                <button id="mockConfigButton" class="icon-action" type="button" title="Generate mock config" aria-label="Generate mock config">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 4h16v16H4z"></path>
+                    <path d="M8 9h8M8 13h8M8 17h5"></path>
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Routes</h2>
+              <span class="step-badge">04</span>
+            </div>
+            <form id="routeForm" class="form-stack">
+              <label>
+                Domain
+                <select id="routeDomainSelect"></select>
+              </label>
+              <label>
+                Subdomain
+                <input id="subdomainInput" value="api" autocomplete="off" />
+              </label>
+              <label>
+                Redirect target
+                <input id="targetInput" value="http://127.0.0.1:8000" autocomplete="off" />
+              </label>
+              <button class="secondary-action" type="submit">
+                <span class="button-icon" aria-hidden="true">+</span>
+                Add route
+              </button>
+            </form>
+            <div id="routeList" class="route-list" aria-live="polite"></div>
+          </section>
+        </aside>
+
+        <section class="whiteboard-shell" aria-label="Realtime routing whiteboard">
+          <div class="whiteboard-toolbar">
+            <div>
+              <p class="eyebrow">Realtime request flow</p>
+              <h2 id="selectedDomainTitle">demo.local</h2>
+            </div>
+            <div class="toolbar-controls">
+              <label>
+                Inspect
+                <select id="activeDomainSelect"></select>
+              </label>
+              <label class="auto-request-control">
+                Simulate request
+                <select id="requestHostSelect"></select>
+              </label>
+              <button id="runTestButton" class="secondary-action compact" type="button">Run nginx -t</button>
+            </div>
+          </div>
+          <div class="request-lab">
+            <div class="mode-toggle" role="group" aria-label="Request mode">
+              <button id="manualModeButton" class="mode-button active" type="button">Manual</button>
+              <button id="autoModeButton" class="mode-button" type="button">Automatic</button>
+            </div>
+            <form id="manualRequestForm" class="manual-request-form">
+              <label>
+                Domain
+                <input id="manualDomainInput" value="demo.local" autocomplete="off" />
+              </label>
+              <label>
+                Subdomain
+                <input id="manualSubdomainInput" value="api" autocomplete="off" />
+              </label>
+              <button id="sendRequestButton" class="primary-action compact" type="submit">Send request</button>
+            </form>
+          </div>
+          <div id="flowNotice" class="flow-notice" aria-live="polite"></div>
+
+          <div class="whiteboard">
+            <svg id="routingSvg" viewBox="0 0 1180 680" role="img" aria-labelledby="diagramTitle diagramDesc">
+              <title id="diagramTitle">Nginx reverse proxy routing diagram</title>
+              <desc id="diagramDesc">A mock request route from browser to DNS, SSL, Nginx, enabled site config, and upstream service ports.</desc>
+            </svg>
+          </div>
+        </section>
+
+        <aside class="inspector-rail" aria-label="Config and site inspector">
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Sites Available</h2>
+              <span class="step-badge">05</span>
+            </div>
+            <div id="availableList" class="site-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Sites Enabled</h2>
+              <span class="step-badge">06</span>
+            </div>
+            <div id="enabledList" class="site-list"></div>
+          </section>
+
+          <section class="panel config-panel">
+            <div class="panel-heading">
+              <h2>Config File</h2>
+              <button id="toggleConfigButton" class="icon-action" type="button" title="Show or hide config" aria-label="Show or hide config">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h16M4 12h16M4 17h16"></path>
+                </svg>
+              </button>
+            </div>
+            <pre id="configPreview" class="config-preview"></pre>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <h2>Nginx Output</h2>
+              <span id="testBadge" class="result-badge ok">passing</span>
+            </div>
+            <pre id="testOutput" class="terminal-output"></pre>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
