@@ -1,3 +1,5 @@
+#command: python3 -m http.server 8765
+
 # FastAPI Nginx Manager Guide
 
 This project is a one-night FastAPI backend for managing simple Nginx reverse proxy sites through an external UI.
